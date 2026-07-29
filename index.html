@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>ProMedia Subdomains Admin</title>
+<meta name="description" content="Internal editor for ProMedia GitHub-hosted subdomain content." />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="./" aria-label="ProMedia Subdomains Admin">
+    <span class="brand-mark">PM</span>
+    <span>
+      <strong>Subdomains Admin</strong>
+      <small>ProMedia GitHub editor</small>
+    </span>
+  </a>
+  <div class="top-actions">
+    <a class="btn ghost" href="https://promedia.report" target="_blank" rel="noopener">promedia.report</a>
+    <button class="btn ghost" id="logout-btn" type="button">Вийти</button>
+  </div>
+</header>
+
+<main class="shell">
+  <aside class="sidebar">
+    <section class="panel token-panel" id="token-panel">
+      <h2>Доступ GitHub</h2>
+      <p>Встав fine-grained token з правом <strong>Contents: Read and write</strong> тільки для потрібних репозиторіїв.</p>
+      <label class="field">
+        <span>GitHub token</span>
+        <input id="token-input" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_..." />
+      </label>
+      <label class="check">
+        <input id="remember-token" type="checkbox" />
+        <span>Запам'ятати на цьому пристрої</span>
+      </label>
+      <div class="token-actions">
+        <button class="btn primary" id="token-save-btn" type="button">Підключити</button>
+        <button class="btn ghost" id="token-clear-btn" type="button">Очистити</button>
+      </div>
+      <p class="hint">Token зберігається лише у цьому браузері. Без token адмінка не може нічого змінити.</p>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <h2>Субдомени</h2>
+        <span class="pill" id="site-count"></span>
+      </div>
+      <div class="site-list" id="site-list"></div>
+    </section>
+  </aside>
+
+  <section class="workspace">
+    <div class="workspace-head">
+      <div>
+        <p class="eyebrow" id="current-repo">Оберіть файл</p>
+        <h1 id="current-title">Редактор субдоменів</h1>
+      </div>
+      <div class="head-actions">
+        <a class="btn ghost" id="live-link" href="#" target="_blank" rel="noopener" hidden>Відкрити сайт</a>
+        <a class="btn ghost" id="github-link" href="#" target="_blank" rel="noopener" hidden>Файл на GitHub</a>
+      </div>
+    </div>
+
+    <div class="status-strip" id="status-strip">
+      <span id="connection-status">Token не підключений</span>
+      <span id="file-status">Файл не завантажено</span>
+      <span id="dirty-status">Без змін</span>
+    </div>
+
+    <section class="panel editor-panel">
+      <div class="editor-toolbar">
+        <div>
+          <label class="field compact">
+            <span>Файл</span>
+            <select id="file-select"></select>
+          </label>
+        </div>
+        <div class="toolbar-actions">
+          <button class="btn ghost" id="load-btn" type="button">Завантажити</button>
+          <button class="btn ghost" id="format-btn" type="button">Форматувати JSON</button>
+          <button class="btn primary" id="save-btn" type="button">Зберегти в GitHub</button>
+        </div>
+      </div>
+
+      <label class="field commit-field">
+        <span>Commit message</span>
+        <input id="commit-message" type="text" placeholder="Update subdomain content via ProMedia admin" />
+      </label>
+
+      <textarea id="editor" spellcheck="false" placeholder="Оберіть субдомен і натисніть «Завантажити»"></textarea>
+
+      <div class="result-box" id="result-box" hidden></div>
+    </section>
+  </section>
+</main>
+
+<script src="js/app.js"></script>
+</body>
+</html>
