@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<meta http-equiv="Cache-Control" content="no-store" />
+<title>Як зробити GitHub token | Адмінка субдоменів ПроМедіа</title>
+<meta name="description" content="Покрокова інструкція зі створення GitHub token для адмінки субдоменів ПроМедіа." />
+<link rel="stylesheet" href="css/style.css?v=20260729-token-guide" />
+</head>
+<body>
+<div id="guide-root" hidden>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="ProMedia Subdomains Admin">
+      <span class="brand-mark">PM</span>
+      <span>
+        <strong>Адмінка субдоменів</strong>
+        <small>ПроМедіа</small>
+      </span>
+    </a>
+    <div class="top-actions">
+      <a class="btn ghost" href="./">До редактора</a>
+      <a class="btn ghost" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Створити token</a>
+    </div>
+  </header>
+
+  <main class="help-shell">
+    <section class="panel help-hero">
+      <p class="eyebrow">GitHub token</p>
+      <h1>Як зробити GitHub token для адмінки ProMedia</h1>
+      <p>Token потрібен для того, щоб адмінка могла зберігати зміни в GitHub-репозиторіях субдоменів. Це персональний ключ доступу, тому кожна людина має створювати власний token, а не користуватися чужим.</p>
+      <div class="notice-box">
+        <strong>Важливо:</strong> GitHub покаже token лише один раз після створення. Його треба одразу скопіювати й зберегти в безпечному місці.
+      </div>
+    </section>
+
+    <section class="panel help-section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Рекомендований варіант</p>
+          <h2>Fine-grained token</h2>
+        </div>
+        <a class="btn primary" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Відкрити GitHub</a>
+      </div>
+
+      <ol class="instruction-list">
+        <li>Зайдіть у свій акаунт на <a href="https://github.com" target="_blank" rel="noopener">github.com</a>.</li>
+        <li>Натисніть на аватарку праворуч угорі і відкрийте <strong>Settings</strong>.</li>
+        <li>У лівому меню внизу відкрийте <strong>Developer settings</strong>.</li>
+        <li>Відкрийте <strong>Personal access tokens</strong>.</li>
+        <li>Оберіть <strong>Fine-grained tokens</strong> і натисніть <strong>Generate new token</strong>.</li>
+        <li>У полі <strong>Token name</strong> напишіть <code>ProMedia subdomains admin</code>.</li>
+        <li>У полі <strong>Resource owner</strong> оберіть акаунт або організацію, де GitHub показує потрібні репозиторії.</li>
+        <li>У полі <strong>Expiration</strong> оберіть строк дії, наприклад <strong>90 days</strong> або <strong>1 year</strong>.</li>
+        <li>У <strong>Repository access</strong> оберіть <strong>Only select repositories</strong>.</li>
+        <li>Позначте потрібні репозиторії: <code>promedia-communities</code>, <code>Journalism2026</code>, <code>promedia-jobs</code> і за потреби <code>promedia-subdomains-admin</code>.</li>
+        <li>У <strong>Repository permissions</strong> поставте <strong>Contents: Read and write</strong>. Поле <strong>Metadata</strong> зазвичай буде <strong>Read-only</strong> автоматично.</li>
+        <li>Натисніть <strong>Generate token</strong>.</li>
+        <li>Скопіюйте token і вставте його в поле <strong>GitHub token</strong> в адмінці субдоменів.</li>
+      </ol>
+
+      <div class="notice-box soft">
+        Якщо потрібних репозиторіїв не видно у списку, попросіть власника репозиторіїв додати вас як collaborator. Якщо після цього fine-grained token все одно не бачить потрібні репозиторії, використайте classic token нижче.
+      </div>
+    </section>
+
+    <section class="panel help-section">
+      <p class="eyebrow">Запасний варіант</p>
+      <h2>Classic token</h2>
+      <p>Якщо GitHub не дає створити fine-grained token або потрібні репозиторії не обираються, можна використати classic token.</p>
+
+      <ol class="instruction-list">
+        <li>Відкрийте <strong>Developer settings</strong> → <strong>Personal access tokens</strong> → <strong>Tokens (classic)</strong>.</li>
+        <li>Натисніть <strong>Generate new token (classic)</strong>.</li>
+        <li>Для публічних репозиторіїв достатньо поставити scope <code>public_repo</code>.</li>
+        <li>Якщо якийсь репозиторій приватний, потрібен scope <code>repo</code>.</li>
+        <li>Не ставте зайві права, якщо GitHub прямо не просить: <code>delete_repo</code>, <code>admin:org</code>, <code>workflow</code>.</li>
+        <li>Натисніть <strong>Generate token</strong>, скопіюйте token і вставте його в адмінку.</li>
+      </ol>
+    </section>
+
+    <section class="panel help-section">
+      <p class="eyebrow">Безпека</p>
+      <h2>Що пам'ятати</h2>
+      <ul class="plain-list">
+        <li>Token треба берегти як пароль.</li>
+        <li>Не надсилайте token у відкритих чатах і не публікуйте його в документах.</li>
+        <li>Якщо token загубився або потрапив не тій людині, його треба видалити на GitHub і створити новий.</li>
+        <li>Для іншої людини краще створити окремий доступ до репозиторіїв, щоб її token можна було відкликати без зміни вашого доступу.</li>
+      </ul>
+      <p class="hint">Офіційна документація GitHub: <a class="text-link" href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens" target="_blank" rel="noopener">Managing your personal access tokens</a>.</p>
+    </section>
+  </main>
+</div>
+
+<section class="login-screen" id="guide-login-required" hidden>
+  <div class="login-card">
+    <span class="brand-mark">PM</span>
+    <h1>Спершу увійдіть в адмінку</h1>
+    <p>Ця інструкція розміщена всередині адмінки субдоменів. Відкрийте головну сторінку адмінки, увійдіть і поверніться до інструкції.</p>
+    <a class="btn primary login-submit" href="./">Перейти до входу</a>
+  </div>
+</section>
+
+<script src="js/token-guide.js?v=20260729-token-guide"></script>
+</body>
+</html>
