@@ -9,6 +9,26 @@
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+<section class="login-screen" id="login-screen">
+  <form class="login-card" id="login-form">
+    <span class="brand-mark">PM</span>
+    <h1>Subdomains Admin</h1>
+    <p>Окремий вхід для редагування GitHub-субдоменів ПроМедіа.</p>
+    <label class="field">
+      <span>Логін</span>
+      <input id="admin-login" type="text" autocomplete="username" spellcheck="false" />
+    </label>
+    <label class="field">
+      <span>Пароль</span>
+      <input id="admin-password" type="password" autocomplete="current-password" />
+    </label>
+    <button class="btn primary login-submit" type="submit">Увійти</button>
+    <div class="login-error" id="login-error" hidden></div>
+    <p class="hint">Після входу для збереження змін усе одно потрібен GitHub token з мінімальними правами.</p>
+  </form>
+</section>
+
+<div id="app-root" hidden>
 <header class="topbar">
   <a class="brand" href="./" aria-label="ProMedia Subdomains Admin">
     <span class="brand-mark">PM</span>
@@ -96,6 +116,7 @@
     </section>
   </section>
 </main>
+</div>
 
 <script src="js/app.js"></script>
 </body>

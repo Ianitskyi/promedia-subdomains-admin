@@ -32,9 +32,19 @@ const SITES = [
   },
 ];
 
+const ADMIN_USERNAME = "subdomain";
+const ADMIN_PASSWORD_HASH = "50e0c84fda2c03731cb20e8c080acb11ac6eb2ba79254a1ee7aa00f0dfbd6661";
+const ADMIN_AUTH_KEY = "pm_subdomains_admin_auth";
+
 const $ = (id) => document.getElementById(id);
 
 const els = {
+  loginScreen: $("login-screen"),
+  loginForm: $("login-form"),
+  adminLogin: $("admin-login"),
+  adminPassword: $("admin-password"),
+  loginError: $("login-error"),
+  appRoot: $("app-root"),
   tokenInput: $("token-input"),
   rememberToken: $("remember-token"),
   tokenSaveBtn: $("token-save-btn"),
@@ -63,6 +73,58 @@ let selectedFile = selectedSite.files[0];
 let currentFile = null;
 let originalContent = "";
 let isDirty = false;
+
+async function sha256Hex(value) {
+  if (!window.crypto?.subtle) {
+    throw new Error("Цей браузер не підтримує безпечну перевірку пароля. Відкрийте адмінку через HTTPS.");
+  }
+
+  const bytes = new TextEncoder().encode(value);
+  const hash = await window.crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(hash)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function isAdminAuthed() {
+  return sessionStorage.getItem(ADMIN_AUTH_KEY) === "1";
+}
+
+function showLogin(message = "") {
+  document.body.classList.add("locked");
+  els.appRoot.hidden = true;
+  els.loginScreen.hidden = false;
+  els.loginError.hidden = !message;
+  els.loginError.textContent = message;
+  els.adminPassword.value = "";
+  els.adminLogin.focus();
+}
+
+function showApp() {
+  document.body.classList.remove("locked");
+  els.loginScreen.hidden = true;
+  els.appRoot.hidden = false;
+  render();
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+
+  const username = els.adminLogin.value.trim();
+  const password = els.adminPassword.value;
+
+  try {
+    const passwordHash = await sha256Hex(password);
+    if (username !== ADMIN_USERNAME || passwordHash !== ADMIN_PASSWORD_HASH) {
+      showLogin("Неправильний логін або пароль.");
+      return;
+    }
+
+    sessionStorage.setItem(ADMIN_AUTH_KEY, "1");
+    els.adminPassword.value = "";
+    showApp();
+  } catch (error) {
+    showLogin(error.message);
+  }
+}
 
 function getToken() {
   return sessionStorage.getItem("pm_subdomains_admin_token") || localStorage.getItem("pm_subdomains_admin_token") || "";
@@ -347,10 +409,21 @@ function clearToken() {
   render();
 }
 
+function logoutAdmin() {
+  sessionStorage.removeItem(ADMIN_AUTH_KEY);
+  setToken("", false);
+  currentFile = null;
+  originalContent = "";
+  els.editor.value = "";
+  clearResult();
+  showLogin();
+}
+
 function bindEvents() {
+  els.loginForm.addEventListener("submit", handleLogin);
   els.tokenSaveBtn.addEventListener("click", testToken);
   els.tokenClearBtn.addEventListener("click", clearToken);
-  els.logoutBtn.addEventListener("click", clearToken);
+  els.logoutBtn.addEventListener("click", logoutAdmin);
   els.fileSelect.addEventListener("change", () => selectFile(els.fileSelect.value));
   els.loadBtn.addEventListener("click", loadSelectedFile);
   els.formatBtn.addEventListener("click", prettyJson);
@@ -365,4 +438,5 @@ function bindEvents() {
 }
 
 bindEvents();
-render();
+if (isAdminAuthed()) showApp();
+else showLogin();
