@@ -35,6 +35,7 @@ const SITES = [
 const ADMIN_USERNAME = "subdomain";
 const ADMIN_PASSWORD_HASH = "50e0c84fda2c03731cb20e8c080acb11ac6eb2ba79254a1ee7aa00f0dfbd6661";
 const ADMIN_AUTH_KEY = "pm_subdomains_admin_auth";
+const memoryStorage = {};
 
 const $ = (id) => document.getElementById(id);
 
@@ -85,7 +86,7 @@ async function sha256Hex(value) {
 }
 
 function isAdminAuthed() {
-  return sessionStorage.getItem(ADMIN_AUTH_KEY) === "1";
+  return storageGet("sessionStorage", ADMIN_AUTH_KEY) === "1";
 }
 
 function showLogin(message = "") {
@@ -118,7 +119,7 @@ async function handleLogin(event) {
       return;
     }
 
-    sessionStorage.setItem(ADMIN_AUTH_KEY, "1");
+    storageSet("sessionStorage", ADMIN_AUTH_KEY, "1");
     els.adminPassword.value = "";
     showApp();
   } catch (error) {
@@ -127,15 +128,51 @@ async function handleLogin(event) {
 }
 
 function getToken() {
-  return sessionStorage.getItem("pm_subdomains_admin_token") || localStorage.getItem("pm_subdomains_admin_token") || "";
+  return storageGet("sessionStorage", "pm_subdomains_admin_token") || storageGet("localStorage", "pm_subdomains_admin_token") || "";
 }
 
 function setToken(token, remember) {
-  sessionStorage.removeItem("pm_subdomains_admin_token");
-  localStorage.removeItem("pm_subdomains_admin_token");
+  storageRemove("sessionStorage", "pm_subdomains_admin_token");
+  storageRemove("localStorage", "pm_subdomains_admin_token");
   if (!token) return;
-  if (remember) localStorage.setItem("pm_subdomains_admin_token", token);
-  else sessionStorage.setItem("pm_subdomains_admin_token", token);
+  if (remember) storageSet("localStorage", "pm_subdomains_admin_token", token);
+  else storageSet("sessionStorage", "pm_subdomains_admin_token", token);
+}
+
+function storageGet(storageName, key) {
+  try {
+    const store = window[storageName];
+    if (store) return store.getItem(key) || "";
+  } catch (error) {
+    // Some embedded browsers block Web Storage. Fall back to this tab only.
+  }
+
+  return memoryStorage[`${storageName}:${key}`] || "";
+}
+
+function storageSet(storageName, key, value) {
+  try {
+    const store = window[storageName];
+    if (store) {
+      store.setItem(key, value);
+      return;
+    }
+  } catch (error) {
+    // Some embedded browsers block Web Storage. Fall back to this tab only.
+  }
+
+  memoryStorage[`${storageName}:${key}`] = value;
+}
+
+function storageRemove(storageName, key) {
+  try {
+    const store = window[storageName];
+    if (store) store.removeItem(key);
+  } catch (error) {
+    // Some embedded browsers block Web Storage. Fall back to this tab only.
+  }
+
+  delete memoryStorage[`${storageName}:${key}`];
 }
 
 function escapeHtml(value) {
@@ -410,7 +447,7 @@ function clearToken() {
 }
 
 function logoutAdmin() {
-  sessionStorage.removeItem(ADMIN_AUTH_KEY);
+  storageRemove("sessionStorage", ADMIN_AUTH_KEY);
   setToken("", false);
   currentFile = null;
   originalContent = "";
