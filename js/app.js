@@ -44,6 +44,7 @@ const els = {
   loginForm: $("login-form"),
   adminLogin: $("admin-login"),
   adminPassword: $("admin-password"),
+  showAdminPassword: $("show-admin-password"),
   loginError: $("login-error"),
   appRoot: $("app-root"),
   tokenInput: $("token-input"),
@@ -110,12 +111,12 @@ async function handleLogin(event) {
   event.preventDefault();
 
   const username = els.adminLogin.value.trim();
-  const password = els.adminPassword.value;
+  const password = els.adminPassword.value.trim();
 
   try {
     const passwordHash = await sha256Hex(password);
     if (username !== ADMIN_USERNAME || passwordHash !== ADMIN_PASSWORD_HASH) {
-      showLogin("Неправильний логін або пароль.");
+      showLogin("Неправильний логін або пароль. Перевірте розкладку, регістр і зайві пробіли.");
       return;
     }
 
@@ -458,6 +459,9 @@ function logoutAdmin() {
 
 function bindEvents() {
   els.loginForm.addEventListener("submit", handleLogin);
+  els.showAdminPassword.addEventListener("change", () => {
+    els.adminPassword.type = els.showAdminPassword.checked ? "text" : "password";
+  });
   els.tokenSaveBtn.addEventListener("click", testToken);
   els.tokenClearBtn.addEventListener("click", clearToken);
   els.logoutBtn.addEventListener("click", logoutAdmin);
