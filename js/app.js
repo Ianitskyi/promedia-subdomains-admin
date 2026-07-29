@@ -99,6 +99,7 @@ const els = {
   adminLogin: $("admin-login"),
   adminPassword: $("admin-password"),
   showAdminPassword: $("show-admin-password"),
+  rememberAdminLogin: $("remember-admin-login"),
   loginError: $("login-error"),
   appRoot: $("app-root"),
   tokenInput: $("token-input"),
@@ -149,7 +150,7 @@ async function sha256Hex(value) {
 }
 
 function isAdminAuthed() {
-  return storageGet("sessionStorage", ADMIN_AUTH_KEY) === "1";
+  return storageGet("sessionStorage", ADMIN_AUTH_KEY) === "1" || storageGet("localStorage", ADMIN_AUTH_KEY) === "1";
 }
 
 function showLogin(message = "") {
@@ -182,7 +183,9 @@ async function handleLogin(event) {
       return;
     }
 
-    storageSet("sessionStorage", ADMIN_AUTH_KEY, "1");
+    storageRemove("sessionStorage", ADMIN_AUTH_KEY);
+    storageRemove("localStorage", ADMIN_AUTH_KEY);
+    storageSet(els.rememberAdminLogin.checked ? "localStorage" : "sessionStorage", ADMIN_AUTH_KEY, "1");
     els.adminPassword.value = "";
     showApp();
   } catch (error) {
@@ -711,6 +714,7 @@ function clearToken() {
 
 function logoutAdmin() {
   storageRemove("sessionStorage", ADMIN_AUTH_KEY);
+  storageRemove("localStorage", ADMIN_AUTH_KEY);
   setToken("", false);
   currentFile = null;
   originalContent = "";

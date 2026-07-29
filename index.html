@@ -27,6 +27,10 @@
       <input id="show-admin-password" type="checkbox" />
       <span>Показати пароль</span>
     </label>
+    <label class="check login-check">
+      <input id="remember-admin-login" type="checkbox" checked />
+      <span>Запам'ятати вхід на цьому пристрої</span>
+    </label>
     <button class="btn primary login-submit" type="submit">Увійти</button>
     <div class="login-error" id="login-error" hidden></div>
     <p class="hint">Після входу для збереження змін усе одно потрібен GitHub token з мінімальними правами.</p>
@@ -161,6 +165,6 @@
 </main>
 </div>
 
-<script src="js/app.js?v=20260729-intuitive"></script>
+<script src="js/app.js?v=20260729-remember-login"></script>
 </body>
 </html>
