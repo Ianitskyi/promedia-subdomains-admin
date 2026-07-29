@@ -142,7 +142,7 @@ a {
 
 .shell {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: 360px minmax(0, 1fr);
   gap: 18px;
   padding: 18px;
   max-width: 1480px;
@@ -194,6 +194,15 @@ p {
   font-size: 13px;
 }
 
+.step-label {
+  margin-bottom: 5px;
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .section-head,
 .workspace-head,
 .status-strip,
@@ -206,6 +215,51 @@ p {
 
 .workspace-head {
   min-height: 74px;
+}
+
+.current-help {
+  max-width: 72ch;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.guide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+}
+
+.guide-step {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 72px;
+  padding: 14px 16px;
+  border-right: 1px solid var(--line);
+}
+
+.guide-step:last-child {
+  border-right: 0;
+}
+
+.guide-step strong {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-size: 14px;
+}
+
+.guide-step span {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.35;
 }
 
 .eyebrow {
@@ -348,7 +402,8 @@ textarea {
 }
 
 .site-btn strong,
-.site-btn span {
+.site-btn span,
+.site-btn em {
   display: block;
 }
 
@@ -360,6 +415,14 @@ textarea {
   margin-top: 4px;
   color: var(--muted);
   font-size: 13px;
+}
+
+.site-btn em {
+  margin-top: 6px;
+  color: var(--ink);
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1.35;
 }
 
 .site-btn.active {
@@ -377,11 +440,148 @@ textarea {
   flex-wrap: wrap;
 }
 
+.mode-switch {
+  min-height: 38px;
+  padding: 3px;
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+}
+
+.mode-btn {
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mode-btn.active {
+  background: #fff;
+  color: var(--navy);
+  box-shadow: 0 1px 5px rgba(20, 24, 40, .08);
+}
+
+.empty-state {
+  padding: 34px 18px 42px;
+  text-align: center;
+}
+
+.empty-state h2 {
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  max-width: 58ch;
+  margin: 0 auto;
+  color: var(--muted);
+}
+
+.form-editor {
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.form-section {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.form-section > summary {
+  padding: 13px 14px;
+  background: var(--soft);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.form-section-body {
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.smart-field {
+  display: grid;
+  gap: 6px;
+}
+
+.smart-field.wide {
+  grid-column: 1 / -1;
+}
+
+.smart-field label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.smart-field small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.smart-field input,
+.smart-field textarea,
+.smart-field select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 11px;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+}
+
+.smart-field textarea {
+  min-height: 94px;
+  resize: vertical;
+  border-top: 1px solid var(--line);
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.45;
+}
+
+.raw-editor-wrap {
+  border-top: 1px solid var(--line);
+}
+
+.raw-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--soft);
+}
+
+.raw-warning {
+  margin: 18px 18px 0;
+  padding: 11px 12px;
+  border-radius: 8px;
+  background: rgba(255, 180, 35, .14);
+  border: 1px solid rgba(255, 180, 35, .45);
+  color: #805400;
+  font-size: 14px;
+}
+
 textarea {
   min-height: calc(100vh - 325px);
   resize: vertical;
   border: 0;
-  border-top: 1px solid var(--line);
+  border-top: 0;
   border-radius: 0;
   padding: 18px;
   font-family: Consolas, "Courier New", monospace;
@@ -430,9 +630,28 @@ textarea {
   }
 
   .workspace-head,
-  .editor-toolbar {
+  .editor-toolbar,
+  .guide {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .guide {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .guide-step {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .guide-step:last-child {
+    border-bottom: 0;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
   }
 
   .field.compact {

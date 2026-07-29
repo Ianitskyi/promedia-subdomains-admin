@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex,nofollow" />
 <meta http-equiv="Cache-Control" content="no-store" />
-<title>ProMedia Subdomains Admin</title>
-<meta name="description" content="Internal editor for ProMedia GitHub-hosted subdomain content." />
-<link rel="stylesheet" href="css/style.css?v=20260729-login2" />
+<title>Адмінка субдоменів ПроМедіа</title>
+<meta name="description" content="Зручна адмінка для редагування GitHub-субдоменів ПроМедіа." />
+<link rel="stylesheet" href="css/style.css?v=20260729-intuitive" />
 </head>
 <body>
 <section class="login-screen" id="login-screen">
   <form class="login-card" id="login-form">
     <span class="brand-mark">PM</span>
-    <h1>Subdomains Admin</h1>
+    <h1>Адмінка субдоменів</h1>
     <p>Окремий вхід для редагування GitHub-субдоменів ПроМедіа.</p>
     <label class="field">
       <span>Логін</span>
@@ -38,8 +38,8 @@
   <a class="brand" href="./" aria-label="ProMedia Subdomains Admin">
     <span class="brand-mark">PM</span>
     <span>
-      <strong>Subdomains Admin</strong>
-      <small>ProMedia GitHub editor</small>
+      <strong>Адмінка субдоменів</strong>
+      <small>ПроМедіа</small>
     </span>
   </a>
   <div class="top-actions">
@@ -51,8 +51,9 @@
 <main class="shell">
   <aside class="sidebar">
     <section class="panel token-panel" id="token-panel">
-      <h2>Доступ GitHub</h2>
-      <p>Встав fine-grained token з правом <strong>Contents: Read and write</strong> тільки для потрібних репозиторіїв.</p>
+      <div class="step-label">Крок 1</div>
+      <h2>Доступ для збереження</h2>
+      <p>Щоб зберегти зміни, встав GitHub token з правом <strong>Contents: Read and write</strong> тільки для потрібних репозиторіїв.</p>
       <label class="field">
         <span>GitHub token</span>
         <input id="token-input" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_..." />
@@ -65,12 +66,15 @@
         <button class="btn primary" id="token-save-btn" type="button">Підключити</button>
         <button class="btn ghost" id="token-clear-btn" type="button">Очистити</button>
       </div>
-      <p class="hint">Token зберігається лише у цьому браузері. Без token адмінка не може нічого змінити.</p>
+      <p class="hint">Без token можна бачити інтерфейс, але не можна завантажити чи зберегти файл.</p>
     </section>
 
     <section class="panel">
       <div class="section-head">
-        <h2>Субдомени</h2>
+        <div>
+          <div class="step-label">Крок 2</div>
+          <h2>Що редагуємо</h2>
+        </div>
         <span class="pill" id="site-count"></span>
       </div>
       <div class="site-list" id="site-list"></div>
@@ -78,10 +82,26 @@
   </aside>
 
   <section class="workspace">
+    <section class="guide panel">
+      <div class="guide-step">
+        <strong>1</strong>
+        <span>Підключи GitHub token у лівій колонці.</span>
+      </div>
+      <div class="guide-step">
+        <strong>2</strong>
+        <span>Обери субдомен і потрібний розділ.</span>
+      </div>
+      <div class="guide-step">
+        <strong>3</strong>
+        <span>Натисни «Завантажити», зміни поля і збережи.</span>
+      </div>
+    </section>
+
     <div class="workspace-head">
       <div>
-        <p class="eyebrow" id="current-repo">Оберіть файл</p>
+        <p class="eyebrow" id="current-repo">Оберіть розділ</p>
         <h1 id="current-title">Редактор субдоменів</h1>
+        <p class="current-help" id="current-help"></p>
       </div>
       <div class="head-actions">
         <a class="btn ghost" id="live-link" href="#" target="_blank" rel="noopener" hidden>Відкрити сайт</a>
@@ -99,13 +119,16 @@
       <div class="editor-toolbar">
         <div>
           <label class="field compact">
-            <span>Файл</span>
+            <span>Розділ</span>
             <select id="file-select"></select>
           </label>
         </div>
         <div class="toolbar-actions">
           <button class="btn ghost" id="load-btn" type="button">Завантажити</button>
-          <button class="btn ghost" id="format-btn" type="button">Форматувати JSON</button>
+          <div class="mode-switch" id="mode-switch" hidden>
+            <button class="mode-btn active" type="button" data-mode="form">Зручні поля</button>
+            <button class="mode-btn" type="button" data-mode="code">Код</button>
+          </div>
           <button class="btn primary" id="save-btn" type="button">Зберегти в GitHub</button>
         </div>
       </div>
@@ -115,7 +138,22 @@
         <input id="commit-message" type="text" placeholder="Update subdomain content via ProMedia admin" />
       </label>
 
-      <textarea id="editor" spellcheck="false" placeholder="Оберіть субдомен і натисніть «Завантажити»"></textarea>
+      <div class="empty-state" id="empty-state">
+        <h2>Почни із завантаження файлу</h2>
+        <p>Після підключення GitHub token натисни «Завантажити». Для текстів і SEO відкриється зручна форма з полями. Технічний код можна переглянути у вкладці «Код».</p>
+      </div>
+
+      <div class="form-editor" id="form-editor" hidden></div>
+
+      <div class="raw-editor-wrap" id="raw-editor-wrap" hidden>
+        <div class="raw-warning" id="raw-warning" hidden>
+          Це технічний режим. Змінюй код тільки якщо точно розумієш, що редагуєш.
+        </div>
+        <div class="raw-actions">
+          <button class="btn ghost" id="format-btn" type="button">Форматувати JSON</button>
+        </div>
+        <textarea id="editor" spellcheck="false" placeholder="Оберіть субдомен і натисніть «Завантажити»"></textarea>
+      </div>
 
       <div class="result-box" id="result-box" hidden></div>
     </section>
@@ -123,6 +161,6 @@
 </main>
 </div>
 
-<script src="js/app.js?v=20260729-login2"></script>
+<script src="js/app.js?v=20260729-intuitive"></script>
 </body>
 </html>

@@ -2,35 +2,89 @@ const SITES = [
   {
     id: "ratings",
     label: "ratings.promedia.report",
+    title: "Рейтинг журфаків",
+    description: "Тексти, SEO та beta-повідомлення для рейтингу журналістських програм.",
     repo: "Ianitskyi/Journalism2026",
     branch: "main",
     liveUrl: "https://ratings.promedia.report",
     files: [
-      { id: "site", label: "Тексти і SEO", path: "content/site.json", type: "json" },
+      { id: "site", label: "Тексти і SEO", path: "content/site.json", type: "json", help: "Заголовки, описи, перший екран і службові повідомлення українською та англійською." },
     ],
   },
   {
     id: "communities",
     label: "communities.promedia.report",
+    title: "Медійні спільноти",
+    description: "Тексти сторінки та каталог медіаспільнот України.",
     repo: "Ianitskyi/promedia-communities",
     branch: "main",
     liveUrl: "https://communities.promedia.report",
     files: [
-      { id: "site", label: "Тексти і SEO", path: "content/site.json", type: "json" },
-      { id: "catalog", label: "Каталог медіаспільнот", path: "data/communities.json", type: "json" },
+      { id: "site", label: "Тексти і SEO", path: "content/site.json", type: "json", help: "Заголовки, SEO-описи, перший екран і текст блоку додавання медіа." },
+      { id: "catalog", label: "Каталог медіаспільнот", path: "data/communities.json", type: "json", help: "Список медіа на карті: назва, регіон, сайт, опис, статус і позначки." },
     ],
   },
   {
     id: "jobs",
     label: "jobs.promedia.report",
+    title: "Вакансії",
+    description: "Вакансії, компанії, довідники форматів і умов роботи.",
     repo: "Ianitskyi/promedia-jobs",
     branch: "main",
     liveUrl: "http://jobs.promedia.report",
     files: [
-      { id: "vacancies", label: "Вакансії та довідники", path: "js/data.js", type: "javascript" },
+      { id: "vacancies", label: "Вакансії та довідники", path: "js/data.js", type: "javascript", help: "Технічний файл із вакансіями. Поки редагується у режимі коду." },
     ],
   },
 ];
+
+const FIELD_LABELS = {
+  schemaVersion: "Версія схеми",
+  admin: "Службова інформація",
+  label: "Назва",
+  repository: "GitHub репозиторій",
+  editableFile: "Редагований файл",
+  description: "Опис",
+  i18n: "Мовні версії",
+  uk: "Українська версія",
+  en: "Англійська версія",
+  meta: "SEO",
+  title: "Заголовок",
+  indexTitle: "SEO-заголовок головної",
+  desc: "SEO-опис",
+  indexDesc: "SEO-опис головної",
+  hero: "Перший екран",
+  eyebrow: "Надзаголовок",
+  lede: "Короткий опис",
+  beta: "Beta-повідомлення",
+  noticeHtml: "Текст повідомлення",
+  addSection: "Блок додавання",
+  text: "Текст",
+  id: "ID",
+  name: "Назва",
+  region: "Область",
+  regionSlug: "Код області",
+  city: "Місто",
+  website: "Сайт",
+  communityIdea: "Ідея спільноти",
+  communityUrl: "Посилання на спільноту",
+  platform: "Платформа",
+  badges: "Позначки",
+  recommended: "Рекомендоване",
+  whitelist: "Білий список",
+  jti: "JTI",
+  status: "Статус",
+  example: "Приклад",
+};
+
+const FIELD_HELP = {
+  noticeHtml: "Можна залишати HTML-посилання, наприклад <a href=\"mailto:...\">...</a>.",
+  regionSlug: "Технічний код області для карти. Краще не змінювати без потреби.",
+  id: "Технічний ID. Краще не змінювати після публікації.",
+  status: "Зазвичай approved для опублікованих записів.",
+  repository: "Службове поле, не текст сайту.",
+  editableFile: "Службове поле, не текст сайту.",
+};
 
 const ADMIN_USERNAME = "subdomain";
 const ADMIN_PASSWORD_HASH = "50e0c84fda2c03731cb20e8c080acb11ac6eb2ba79254a1ee7aa00f0dfbd6661";
@@ -66,8 +120,14 @@ const els = {
   dirtyStatus: $("dirty-status"),
   currentRepo: $("current-repo"),
   currentTitle: $("current-title"),
+  currentHelp: $("current-help"),
   liveLink: $("live-link"),
   githubLink: $("github-link"),
+  modeSwitch: $("mode-switch"),
+  formEditor: $("form-editor"),
+  rawEditorWrap: $("raw-editor-wrap"),
+  rawWarning: $("raw-warning"),
+  emptyState: $("empty-state"),
 };
 
 let selectedSite = SITES[0];
@@ -75,6 +135,8 @@ let selectedFile = selectedSite.files[0];
 let currentFile = null;
 let originalContent = "";
 let isDirty = false;
+let editorMode = "form";
+let structuredData = null;
 
 async function sha256Hex(value) {
   if (!window.crypto?.subtle) {
@@ -268,11 +330,194 @@ function validateContent(content, file) {
   }
 }
 
+function humanLabel(key, path = []) {
+  if (key === undefined || key === null || key === "") return "Група";
+  if (typeof key === "number" || /^\d+$/.test(String(key))) return `Запис ${Number(key) + 1}`;
+  return FIELD_LABELS[key] || String(key).replace(/([A-Z])/g, " $1").replace(/^./, (ch) => ch.toUpperCase());
+}
+
+function pathTitle(path) {
+  return path.map((part) => humanLabel(part)).join(" / ");
+}
+
+function shouldUseTextarea(key, value) {
+  const longKeys = ["description", "communityIdea", "noticeHtml", "indexDesc", "desc", "lede", "text"];
+  return longKeys.includes(String(key)) || String(value).length > 90 || String(value).includes("<");
+}
+
+function pathToAttr(path) {
+  return escapeHtml(JSON.stringify(path));
+}
+
+function valueAtPath(source, path) {
+  return path.reduce((acc, part) => acc?.[part], source);
+}
+
+function setValueAtPath(source, path, value) {
+  const last = path[path.length - 1];
+  const parent = valueAtPath(source, path.slice(0, -1));
+  const previous = parent[last];
+
+  if (typeof previous === "number") {
+    parent[last] = Number(value);
+    return;
+  }
+
+  if (typeof previous === "boolean") {
+    parent[last] = value === "true";
+    return;
+  }
+
+  parent[last] = value;
+}
+
+function renderPrimitiveField(key, value, path) {
+  const label = humanLabel(key, path);
+  const help = FIELD_HELP[key] || "";
+  const wide = shouldUseTextarea(key, value) ? " wide" : "";
+  const pathAttr = pathToAttr(path);
+  const helpHtml = help ? `<small>${escapeHtml(help)}</small>` : "";
+
+  if (typeof value === "boolean") {
+    return `
+      <div class="smart-field">
+        <label>${escapeHtml(label)}</label>
+        <select data-json-path="${pathAttr}">
+          <option value="true" ${value ? "selected" : ""}>Так</option>
+          <option value="false" ${!value ? "selected" : ""}>Ні</option>
+        </select>
+        ${helpHtml}
+      </div>
+    `;
+  }
+
+  if (shouldUseTextarea(key, value)) {
+    return `
+      <div class="smart-field${wide}">
+        <label>${escapeHtml(label)}</label>
+        <textarea data-json-path="${pathAttr}">${escapeHtml(value)}</textarea>
+        ${helpHtml}
+      </div>
+    `;
+  }
+
+  const type = typeof value === "number" ? "number" : "text";
+  return `
+    <div class="smart-field${wide}">
+      <label>${escapeHtml(label)}</label>
+      <input type="${type}" value="${escapeHtml(value)}" data-json-path="${pathAttr}" />
+      ${helpHtml}
+    </div>
+  `;
+}
+
+function renderJsonNode(value, path = [], key = "root") {
+  if (value === null || ["string", "number", "boolean"].includes(typeof value)) {
+    return renderPrimitiveField(key, value ?? "", path);
+  }
+
+  if (Array.isArray(value)) {
+    const title = path.length ? humanLabel(key, path) : "Список";
+    const items = value.map((item, index) => renderJsonNode(item, path.concat(index), index)).join("");
+    return `
+      <details class="form-section" open>
+        <summary>${escapeHtml(title)} (${value.length})</summary>
+        <div class="form-section-body">${items}</div>
+      </details>
+    `;
+  }
+
+  const entries = Object.entries(value);
+  const simpleEntries = entries.filter(([, child]) => child === null || ["string", "number", "boolean"].includes(typeof child));
+  const complexEntries = entries.filter(([, child]) => child !== null && !["string", "number", "boolean"].includes(typeof child));
+  const simpleHtml = simpleEntries.map(([childKey, child]) => renderPrimitiveField(childKey, child ?? "", path.concat(childKey))).join("");
+  const complexHtml = complexEntries.map(([childKey, child]) => renderJsonNode(child, path.concat(childKey), childKey)).join("");
+  const title = path.length ? humanLabel(key, path) : "Вміст";
+  const open = path.length <= 2 ? " open" : "";
+
+  return `
+    <details class="form-section"${open}>
+      <summary>${escapeHtml(title)}</summary>
+      <div class="form-section-body">
+        ${simpleHtml ? `<div class="form-grid">${simpleHtml}</div>` : ""}
+        ${complexHtml}
+      </div>
+    </details>
+  `;
+}
+
+function renderFormEditor() {
+  if (!structuredData || selectedFile.type !== "json") {
+    els.formEditor.hidden = true;
+    els.formEditor.innerHTML = "";
+    return;
+  }
+
+  els.formEditor.innerHTML = renderJsonNode(structuredData);
+  els.formEditor.hidden = false;
+
+  els.formEditor.querySelectorAll("[data-json-path]").forEach((field) => {
+    field.addEventListener("input", onFormFieldChange);
+    field.addEventListener("change", onFormFieldChange);
+  });
+}
+
+function onFormFieldChange(event) {
+  const path = JSON.parse(event.currentTarget.dataset.jsonPath);
+  setValueAtPath(structuredData, path, event.currentTarget.value);
+  els.editor.value = JSON.stringify(structuredData, null, 2) + "\n";
+  updateDirtyState();
+}
+
+function showEditorForCurrentFile() {
+  const hasFile = !!currentFile;
+  els.emptyState.hidden = hasFile;
+  els.modeSwitch.hidden = !hasFile || selectedFile.type !== "json";
+  els.rawWarning.hidden = selectedFile.type === "json";
+
+  if (!hasFile) {
+    els.formEditor.hidden = true;
+    els.rawEditorWrap.hidden = true;
+    return;
+  }
+
+  if (selectedFile.type === "json" && editorMode === "form") {
+    els.formEditor.hidden = false;
+    els.rawEditorWrap.hidden = true;
+  } else {
+    els.formEditor.hidden = true;
+    els.rawEditorWrap.hidden = false;
+  }
+
+  document.querySelectorAll(".mode-btn").forEach((button) => {
+    button.classList.toggle("active", button.dataset.mode === editorMode);
+  });
+}
+
+function switchEditorMode(mode) {
+  if (!currentFile || selectedFile.type !== "json") return;
+
+  if (mode === "form") {
+    try {
+      structuredData = JSON.parse(els.editor.value);
+      renderFormEditor();
+    } catch (error) {
+      showResult(`Не можу перейти у зручні поля, бо JSON має помилку: ${escapeHtml(error.message)}`, "bad");
+      return;
+    }
+  }
+
+  editorMode = mode;
+  showEditorForCurrentFile();
+}
+
 function prettyJson() {
   if (!selectedFile || selectedFile.type !== "json") return;
   try {
     const parsed = JSON.parse(els.editor.value);
     els.editor.value = JSON.stringify(parsed, null, 2) + "\n";
+    structuredData = parsed;
+    renderFormEditor();
     updateDirtyState();
     showResult("JSON відформатовано.", "good");
   } catch (error) {
@@ -284,8 +529,9 @@ function renderSites() {
   els.siteCount.textContent = `${SITES.length}`;
   els.siteList.innerHTML = SITES.map((site) => `
     <button class="site-btn ${site.id === selectedSite.id ? "active" : ""}" type="button" data-site="${site.id}">
-      <strong>${escapeHtml(site.label)}</strong>
-      <span>${escapeHtml(site.repo)}</span>
+      <strong>${escapeHtml(site.title || site.label)}</strong>
+      <span>${escapeHtml(site.label)}</span>
+      <em>${escapeHtml(site.description || site.repo)}</em>
     </button>
   `).join("");
 
@@ -296,7 +542,7 @@ function renderSites() {
 
 function renderFileSelect() {
   els.fileSelect.innerHTML = selectedSite.files.map((file) => `
-    <option value="${file.id}">${escapeHtml(file.label)} - ${escapeHtml(file.path)}</option>
+    <option value="${file.id}">${escapeHtml(file.label)}</option>
   `).join("");
   els.fileSelect.value = selectedFile.id;
   els.formatBtn.disabled = selectedFile.type !== "json";
@@ -308,7 +554,10 @@ function selectSite(siteId) {
   selectedFile = selectedSite.files[0];
   currentFile = null;
   originalContent = "";
+  structuredData = null;
+  editorMode = "form";
   els.editor.value = "";
+  els.formEditor.innerHTML = "";
   clearResult();
   render();
 }
@@ -321,7 +570,10 @@ function selectFile(fileId) {
   selectedFile = selectedSite.files.find((file) => file.id === fileId) || selectedSite.files[0];
   currentFile = null;
   originalContent = "";
+  structuredData = null;
+  editorMode = "form";
   els.editor.value = "";
+  els.formEditor.innerHTML = "";
   clearResult();
   render();
 }
@@ -332,8 +584,9 @@ function updateDirtyState() {
 }
 
 function renderHeader() {
-  els.currentRepo.textContent = `${selectedSite.repo} / ${selectedSite.branch}`;
-  els.currentTitle.textContent = `${selectedSite.label}: ${selectedFile.label}`;
+  els.currentRepo.textContent = `${selectedSite.label}`;
+  els.currentTitle.textContent = selectedFile.label;
+  els.currentHelp.textContent = selectedFile.help || selectedSite.description || "";
   els.liveLink.href = selectedSite.liveUrl;
   els.liveLink.hidden = false;
   els.githubLink.href = githubFileUrl(selectedSite, selectedFile);
@@ -363,6 +616,7 @@ function render() {
   updateAuthStatus();
   updateFileStatus();
   updateDirtyState();
+  showEditorForCurrentFile();
 }
 
 async function testToken() {
@@ -391,6 +645,14 @@ async function loadSelectedFile() {
     currentFile = data;
     originalContent = decodeBase64(data.content);
     els.editor.value = originalContent;
+    structuredData = null;
+    editorMode = selectedFile.type === "json" ? "form" : "code";
+    if (selectedFile.type === "json") {
+      structuredData = JSON.parse(originalContent);
+      els.editor.value = JSON.stringify(structuredData, null, 2) + "\n";
+      originalContent = els.editor.value;
+      renderFormEditor();
+    }
     els.commitMessage.value = `Update ${selectedFile.path} via ProMedia subdomains admin`;
     showResult(`Завантажено <strong>${escapeHtml(selectedFile.path)}</strong> з ${escapeHtml(selectedSite.repo)}.`, "good");
   } catch (error) {
@@ -470,6 +732,9 @@ function bindEvents() {
   els.formatBtn.addEventListener("click", prettyJson);
   els.saveBtn.addEventListener("click", saveSelectedFile);
   els.editor.addEventListener("input", updateDirtyState);
+  document.querySelectorAll(".mode-btn").forEach((button) => {
+    button.addEventListener("click", () => switchEditorMode(button.dataset.mode));
+  });
 
   window.addEventListener("beforeunload", (event) => {
     if (!isDirty) return;
