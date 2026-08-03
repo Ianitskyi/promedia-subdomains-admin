@@ -9,6 +9,8 @@ repositories.
 - `communities.promedia.report` -> `Ianitskyi/promedia-communities`,
   `content/site.json` and `data/communities.json`
 - `jobs.promedia.report` -> `Ianitskyi/promedia-jobs`, `js/data.js`
+- `research.promedia.report` -> `Ianitskyi/promedia-research`,
+  `content/site.json` and `data/research.json`
 
 ## Security model
 

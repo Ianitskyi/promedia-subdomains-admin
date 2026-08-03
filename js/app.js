@@ -36,6 +36,19 @@ const SITES = [
       { id: "vacancies", label: "Вакансії та довідники", path: "js/data.js", type: "javascript", help: "Технічний файл із вакансіями. Поки редагується у режимі коду." },
     ],
   },
+  {
+    id: "research",
+    label: "research.promedia.report",
+    title: "Дослідження",
+    description: "Тексти хіро-блоку та каталог досліджень ПроМедіа.",
+    repo: "Ianitskyi/promedia-research",
+    branch: "main",
+    liveUrl: "https://research.promedia.report",
+    files: [
+      { id: "site", label: "Тексти і SEO", path: "content/site.json", type: "json", help: "Заголовок, eyebrow, підзаголовок і SEO-описи головної сторінки українською та англійською." },
+      { id: "catalog", label: "Каталог досліджень", path: "data/research.json", type: "json", help: "Список досліджень на головній: назва, опис, рік, автори, теги, посилання на UA/EN версії." },
+    ],
+  },
 ];
 
 const FIELD_LABELS = {
