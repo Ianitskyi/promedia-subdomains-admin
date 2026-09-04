@@ -342,9 +342,15 @@ function repoApiPath(site, file) {
   return `/repos/${site.repo}/contents/${encodeURIComponent(file.path).replace(/%2F/g, "/")}`;
 }
 
-function validateContent(content, file) {
+function validateContent(content, file, site) {
   if (file.type === "json") {
-    JSON.parse(content);
+    const parsed = JSON.parse(content);
+    if (site?.id === "research" && file.id === "catalog") {
+      if (!Array.isArray(parsed)) throw new Error("Каталог досліджень має бути списком записів.");
+      const ids = parsed.map((item) => item?.id).filter(Boolean);
+      const uniqueIds = new Set(ids);
+      if (ids.length !== uniqueIds.size) throw new Error("У каталозі досліджень є дублікати ID. Збереження зупинено.");
+    }
     return;
   }
 
@@ -481,6 +487,11 @@ function renderFormEditor() {
     return;
   }
 
+  if (isResearchCatalogEditor()) {
+    renderResearchCatalogEditor();
+    return;
+  }
+
   els.formEditor.innerHTML = renderJsonNode(structuredData);
   els.formEditor.hidden = false;
 
@@ -495,6 +506,196 @@ function onFormFieldChange(event) {
   setValueAtPath(structuredData, path, event.currentTarget.value);
   els.editor.value = JSON.stringify(structuredData, null, 2) + "\n";
   updateDirtyState();
+}
+
+function isResearchCatalogEditor() {
+  return selectedSite?.id === "research" && selectedFile?.id === "catalog" && Array.isArray(structuredData);
+}
+
+function arrayToCsv(value) {
+  return Array.isArray(value) ? value.join(", ") : "";
+}
+
+function csvToArray(value) {
+  return String(value || "").split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+function getDeepValue(source, path, fallback = "") {
+  const value = path.reduce((acc, part) => acc?.[part], source);
+  return value === undefined || value === null ? fallback : value;
+}
+
+function setDeepValue(source, path, value) {
+  let current = source;
+  path.slice(0, -1).forEach((part) => {
+    if (!current[part] || typeof current[part] !== "object") current[part] = {};
+    current = current[part];
+  });
+  current[path[path.length - 1]] = value;
+}
+
+function researchAttr(index, path) {
+  return escapeHtml(JSON.stringify([index].concat(path)));
+}
+
+function researchTextField(index, path, label, value, options = {}) {
+  const kind = options.kind || "text";
+  const wide = options.wide ? " wide" : "";
+  const hint = options.hint ? `<small>${escapeHtml(options.hint)}</small>` : "";
+  const attr = `data-research-path="${researchAttr(index, path)}" data-research-kind="${escapeHtml(kind)}"`;
+  if (options.textarea) {
+    return `
+      <div class="smart-field${wide}">
+        <label>${escapeHtml(label)}</label>
+        <textarea ${attr}>${escapeHtml(value)}</textarea>
+        ${hint}
+      </div>
+    `;
+  }
+  const type = kind === "number" ? "number" : (options.type || "text");
+  return `
+    <div class="smart-field${wide}">
+      <label>${escapeHtml(label)}</label>
+      <input type="${escapeHtml(type)}" value="${escapeHtml(value)}" ${attr} />
+      ${hint}
+    </div>
+  `;
+}
+
+function researchSelectField(index, path, label, value) {
+  return `
+    <div class="smart-field">
+      <label>${escapeHtml(label)}</label>
+      <select data-research-path="${researchAttr(index, path)}" data-research-kind="text">
+        <option value="full" ${value === "full" ? "selected" : ""}>Повний текст на сайті</option>
+        <option value="external" ${value === "external" ? "selected" : ""}>Зовнішнє посилання</option>
+      </select>
+    </div>
+  `;
+}
+
+function renderResearchEntry(item, index) {
+  const title = getDeepValue(item, ["title", "uk"], "") || getDeepValue(item, ["title", "en"], "") || `Дослідження ${index + 1}`;
+  const year = getDeepValue(item, ["year"], "");
+  const date = getDeepValue(item, ["date"], "");
+  return `
+    <details class="form-section research-entry" open>
+      <summary>
+        <span>${escapeHtml(title)}</span>
+        <em>${escapeHtml([year, date].filter(Boolean).join(" · "))}</em>
+      </summary>
+      <div class="form-section-body">
+        <div class="research-entry-tools">
+          <button class="btn ghost" type="button" data-research-duplicate="${index}">Дублювати</button>
+          <button class="btn ghost danger" type="button" data-research-delete="${index}">Видалити</button>
+        </div>
+        <div class="form-grid">
+          ${researchTextField(index, ["id"], "ID / slug", getDeepValue(item, ["id"], ""), { hint: "Латиницею, без пробілів. Краще не змінювати після публікації." })}
+          ${researchTextField(index, ["date"], "Дата", date, { type: "date" })}
+          ${researchTextField(index, ["year"], "Рік", year, { kind: "number" })}
+          ${researchTextField(index, ["publisher"], "Видавець", getDeepValue(item, ["publisher"], ""))}
+          ${researchTextField(index, ["originalUrl"], "Оригінальна публікація", getDeepValue(item, ["originalUrl"], ""), { type: "url", wide: true })}
+        </div>
+        <h3 class="smart-subtitle">Українська версія</h3>
+        <div class="form-grid">
+          ${researchTextField(index, ["title", "uk"], "Назва українською", getDeepValue(item, ["title", "uk"], ""), { wide: true })}
+          ${researchTextField(index, ["summary", "uk"], "Короткий опис українською", getDeepValue(item, ["summary", "uk"], ""), { textarea: true, wide: true })}
+          ${researchTextField(index, ["authors", "uk"], "Автори українською", arrayToCsv(getDeepValue(item, ["authors", "uk"], [])), { kind: "array", hint: "Кілька авторів розділяйте комами." })}
+          ${researchTextField(index, ["tags", "uk"], "Теги українською", arrayToCsv(getDeepValue(item, ["tags", "uk"], [])), { kind: "array", hint: "Кілька тегів розділяйте комами." })}
+          ${researchSelectField(index, ["languages", "uk", "type"], "Тип посилання UA", getDeepValue(item, ["languages", "uk", "type"], "full"))}
+          ${researchTextField(index, ["languages", "uk", "url"], "URL української версії", getDeepValue(item, ["languages", "uk", "url"], ""))}
+        </div>
+        <h3 class="smart-subtitle">Англійська версія</h3>
+        <div class="form-grid">
+          ${researchTextField(index, ["title", "en"], "Назва англійською", getDeepValue(item, ["title", "en"], ""), { wide: true })}
+          ${researchTextField(index, ["summary", "en"], "Короткий опис англійською", getDeepValue(item, ["summary", "en"], ""), { textarea: true, wide: true })}
+          ${researchTextField(index, ["authors", "en"], "Автори англійською", arrayToCsv(getDeepValue(item, ["authors", "en"], [])), { kind: "array", hint: "Кілька авторів розділяйте комами." })}
+          ${researchTextField(index, ["tags", "en"], "Теги англійською", arrayToCsv(getDeepValue(item, ["tags", "en"], [])), { kind: "array", hint: "Кілька тегів розділяйте комами." })}
+          ${researchSelectField(index, ["languages", "en", "type"], "Тип посилання EN", getDeepValue(item, ["languages", "en", "type"], "full"))}
+          ${researchTextField(index, ["languages", "en", "url"], "URL англійської версії", getDeepValue(item, ["languages", "en", "url"], ""))}
+        </div>
+      </div>
+    </details>
+  `;
+}
+
+function syncStructuredEditor() {
+  els.editor.value = JSON.stringify(structuredData, null, 2) + "\n";
+  updateDirtyState();
+}
+
+function renderResearchCatalogEditor() {
+  els.formEditor.innerHTML = `
+    <div class="catalog-actions">
+      <div>
+        <h2>Каталог досліджень</h2>
+        <p class="hint">Тут редагуються картки на головній research.promedia.report. Повні HTML-тексти досліджень поки лишаються у GitHub-файлах.</p>
+      </div>
+      <button class="btn primary" type="button" data-research-add>+ Додати дослідження</button>
+    </div>
+    ${structuredData.map(renderResearchEntry).join("")}
+  `;
+  els.formEditor.hidden = false;
+
+  els.formEditor.querySelectorAll("[data-research-path]").forEach((field) => {
+    field.addEventListener("input", onResearchFieldChange);
+    field.addEventListener("change", onResearchFieldChange);
+  });
+  els.formEditor.querySelectorAll("[data-research-delete]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const index = Number(button.dataset.researchDelete);
+      if (!confirm("Видалити це дослідження з каталогу?")) return;
+      structuredData.splice(index, 1);
+      syncStructuredEditor();
+      renderResearchCatalogEditor();
+    });
+  });
+  els.formEditor.querySelectorAll("[data-research-duplicate]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const index = Number(button.dataset.researchDuplicate);
+      const source = structuredData[index] || {};
+      const copy = JSON.parse(JSON.stringify(source));
+      copy.id = `${copy.id || "research"}-copy`;
+      structuredData.splice(index + 1, 0, copy);
+      syncStructuredEditor();
+      renderResearchCatalogEditor();
+    });
+  });
+  const addButton = els.formEditor.querySelector("[data-research-add]");
+  if (addButton) {
+    addButton.addEventListener("click", () => {
+      const year = new Date().getFullYear();
+      structuredData.unshift({
+        id: `new-research-${Date.now()}`,
+        year,
+        date: new Date().toISOString().slice(0, 10),
+        authors: { uk: [], en: [] },
+        publisher: "",
+        originalUrl: "",
+        tags: { uk: [], en: [] },
+        title: { uk: "", en: "" },
+        summary: { uk: "", en: "" },
+        languages: {
+          uk: { type: "full", url: "" },
+          en: { type: "external", url: "" },
+        },
+      });
+      syncStructuredEditor();
+      renderResearchCatalogEditor();
+    });
+  }
+}
+
+function onResearchFieldChange(event) {
+  const path = JSON.parse(event.currentTarget.dataset.researchPath);
+  const index = Number(path.shift());
+  const kind = event.currentTarget.dataset.researchKind || "text";
+  let value = event.currentTarget.value;
+  if (kind === "number") value = Number(value) || 0;
+  if (kind === "array") value = csvToArray(value);
+  if (!structuredData[index]) structuredData[index] = {};
+  setDeepValue(structuredData[index], path, value);
+  syncStructuredEditor();
 }
 
 function showEditorForCurrentFile() {
@@ -698,7 +899,7 @@ async function saveSelectedFile() {
 
   try {
     const content = els.editor.value;
-    validateContent(content, selectedFile);
+    validateContent(content, selectedFile, selectedSite);
 
     const message = els.commitMessage.value.trim() || `Update ${selectedFile.path} via ProMedia subdomains admin`;
     const payload = {

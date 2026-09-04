@@ -381,6 +381,12 @@ textarea {
   border-color: var(--line);
 }
 
+.btn.danger,
+.btn.ghost.danger {
+  color: var(--red);
+  border-color: rgba(192, 53, 53, .28);
+}
+
 .btn:disabled {
   opacity: .55;
   cursor: not-allowed;
@@ -489,6 +495,21 @@ textarea {
   gap: 14px;
 }
 
+.catalog-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+}
+
+.catalog-actions h2 {
+  margin-bottom: 4px;
+}
+
 .form-section {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -503,10 +524,43 @@ textarea {
   font-weight: 800;
 }
 
+.research-entry > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.research-entry > summary span {
+  min-width: 0;
+}
+
+.research-entry > summary em {
+  flex: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+
 .form-section-body {
   padding: 14px;
   display: grid;
   gap: 12px;
+}
+
+.research-entry-tools {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.smart-subtitle {
+  margin: 10px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--navy);
+  font-size: 15px;
 }
 
 .form-grid {
@@ -723,6 +777,12 @@ code {
 
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .catalog-actions,
+  .research-entry > summary {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .field.compact {
