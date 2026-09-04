@@ -25,13 +25,26 @@ const SITES = [
     ],
   },
   {
+    id: "research",
+    label: "research.promedia.report",
+    title: "Дослідження",
+    description: "Тексти, SEO та каталог досліджень і посібників ПроМедіа.",
+    repo: "Ianitskyi/promedia-research",
+    branch: "main",
+    liveUrl: "https://research.promedia.report",
+    files: [
+      { id: "site", label: "Тексти і SEO", path: "content/site.json", type: "json", help: "Заголовки, SEO-описи, перший екран і службові тексти українською та англійською." },
+      { id: "catalog", label: "Каталог досліджень", path: "data/research.json", type: "json", help: "Картки досліджень: назви, описи, автори, теги, джерела та посилання на повні тексти." },
+    ],
+  },
+  {
     id: "jobs",
     label: "jobs.promedia.report",
     title: "Вакансії",
     description: "Вакансії, компанії, довідники форматів і умов роботи.",
     repo: "Ianitskyi/promedia-jobs",
     branch: "main",
-    liveUrl: "http://jobs.promedia.report",
+    liveUrl: "https://jobs.promedia.report",
     files: [
       { id: "vacancies", label: "Вакансії та довідники", path: "js/data.js", type: "javascript", help: "Технічний файл із вакансіями. Поки редагується у режимі коду." },
     ],
@@ -88,6 +101,16 @@ const FIELD_LABELS = {
   jti: "JTI",
   status: "Статус",
   example: "Приклад",
+  year: "Рік",
+  date: "Дата",
+  authors: "Автори",
+  publisher: "Видавець",
+  originalUrl: "Оригінальна публікація",
+  tags: "Теги",
+  summary: "Короткий опис",
+  languages: "Мовні версії",
+  type: "Тип посилання",
+  url: "URL",
 };
 
 const FIELD_HELP = {
@@ -97,6 +120,8 @@ const FIELD_HELP = {
   status: "Зазвичай approved для опублікованих записів.",
   repository: "Службове поле, не текст сайту.",
   editableFile: "Службове поле, не текст сайту.",
+  originalUrl: "Посилання на першоджерело або сторінку оригінальної публікації.",
+  type: "full — повний текст на сайті; external — зовнішнє посилання.",
 };
 
 const ADMIN_USERNAME = "subdomain";

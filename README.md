@@ -8,6 +8,8 @@ repositories.
 - `ratings.promedia.report` -> `Ianitskyi/Journalism2026`, `content/site.json`
 - `communities.promedia.report` -> `Ianitskyi/promedia-communities`,
   `content/site.json` and `data/communities.json`
+- `research.promedia.report` -> `Ianitskyi/promedia-research`,
+  `content/site.json` and `data/research.json`
 - `jobs.promedia.report` -> `Ianitskyi/promedia-jobs`, `js/data.js`
 - `research.promedia.report` -> `Ianitskyi/promedia-research`,
   `content/site.json` and `data/research.json`
